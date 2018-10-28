@@ -11,17 +11,17 @@
 
 <img src="./image/Virtual_Environment/Anaconda1.png">
 
-<img src="./image/Virtual_Environment/Anaconda2.png"
+<img src="./image/Virtual_Environment/Anaconda2.png">
 
 <b>　インストールが終了したら、Anaconda Navigator を開く。Anaconda Navigator では、異なる実行環境を作成することができるため、プロジェクトに合わせてpythonやその他のパッケージのバージョンが異なる環境を用意することができる。</b>
 
 <b>　まずは環境を構築する。Environment を選択した後 Create を押し、Python のバージョンを選んでOKを押すと、基本的なパッケージが自動的にインストールされる。</b>
 
-![Anaconda%20Navigator.png](attachment:Anaconda%20Navigator.png)
+<img src="./image/Virtual_Environment/Anaconda%20Navigator.png">
 
-![Anaconda%20Navigator2.png](attachment:Anaconda%20Navigator2.png)
+<img src="./image/Virtual_Environment/Anaconda%20Navigator2.png">
 
-![Anaconda%20Navigator3.png](attachment:Anaconda%20Navigator3.png)
+<img src="./image/Virtual_Environment/Anaconda%20Navigator3.png">
 
 <b>　環境が作成できたので、「Open Tarminal」からコマンドプロンプトを開く。これによって、その環境が有効にされた状態でコマンドプロンプトを開くことができる。あとは、その他必要なパッケージを各種インストールする（pipはすでに入っている。）ことで、環境構築は終了である。</b>
 
@@ -38,4 +38,4 @@
 <b>`$sorce activate 仮想環境の名前 # macOS/Linux`</b><br>
 <b>`$activate 仮想環境の名前       # Windows`</b>
 
-![virtual%20env.png](attachment:virtual%20env.png)
+<img src="./image/Virtual_Environment/virtual%20env.png">

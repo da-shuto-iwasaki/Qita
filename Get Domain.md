@@ -46,26 +46,26 @@
 <b>　まずはAWSのインスタンスに行き、自分のサーバーのIPアドレスを確認する。（なお、ここで Elastic IP を利用してIPアドレスを固定していないと大変なことになるので、注意が必要である。）<br>
 　IPアドレスがわかったら、マネジメントコンソールでRoute53に移動し、一番左のDNS management から、Get started now を選択する。</b>
 
-![Amazon_Route_53.png](attachment:Amazon_Route_53.png)
+<img src="./image/Get_Domain/Amazon_Route_53.png">
 
 <b>　Create Hosted Zone を選択して、右に出てくるところに、使いたいドメイン名を入れ( www. などは入れず、 xxxxx.jp や xxxxx.com という部分だけ)、作成する。</b>
 
-![Create_Hosted_Zone.png](attachment:Create_Hosted_Zone.png)
+<img src="./image/Get_Domain/Create_Hosted_Zone.png">
 
 <b>　作成されたNSレコードを全て記録し、Create Record Setを選択する。以下のものを書き込み、Create
 <li>Name : www</li>
 <li>Type : A-IPv4 address</li>
 <li>Value : IPアドレス</li>
 
-![Create_Record_Set2.png](attachment:Create_Record_Set2.png)
+<img src="./image/Get_Domain/Create_Record_Set2.png">
 
 <b>　続いて、ドメイン名を取得したサイト（お名前.com）に移動する。「DNS関連機能の設定」を選択し、次へ進む。</b>
 
-![onamae.png](attachment:onamae.png)
+<img src="./image/Get_Domain/onamae.png">
 
 <b>　先ほど記録したNSレコードを入力する。（※なお、最後のピリオドを取ることに注意）</b>
 
-![oanamae2.png](attachment:oanamae2.png)
+<img src="./image/Get_Domain/onamae2.png">
 
 <b>　エラーが起こらなければ、これで設定は終了になる。あとは、設定が反映されるのを待つ。なお、ターミナルで以下のコマンドを打って確認をすることもできる。<br>
 `$ nslookup -type=ns arashirecognition.com`
