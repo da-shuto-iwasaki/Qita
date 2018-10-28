@@ -9,9 +9,9 @@
 
 <b>　ホームページの上部「Product」から「Anaconda Python/R Distribution」を選択し、書いてある指示に従い、自分の環境に合わせた installer をダウンロードする。</b>
 
-![Anaconda1.png](attachment:Anaconda1.png)
+<img src="./image/Virtual_Environment/Anaconda1.png">
 
-![Anaconda2.png](attachment:Anaconda2.png)
+<img src="./image/Virtual_Environment/Anaconda2.png"
 
 <b>　インストールが終了したら、Anaconda Navigator を開く。Anaconda Navigator では、異なる実行環境を作成することができるため、プロジェクトに合わせてpythonやその他のパッケージのバージョンが異なる環境を用意することができる。</b>
 
