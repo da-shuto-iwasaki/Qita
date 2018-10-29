@@ -4,7 +4,7 @@
 ***
 ***
 
-<b>　とりあえず[ここ]()で必要なものはわかったので、実際にAWSで環境構築をしながら、その流れをメモしていく。</b>
+<b>　とりあえず[ここ](https://github.com/iwasakishuto/Qita/blob/master/Web%20App%20memo.md)で必要なものはわかったので、実際にAWSで環境構築をしながら、その流れをメモしていく。</b>
 
 ## インスタンスの作成
 <b>　今回は、`Ubuntu Server 18.04 LTS (HVM), SSD Volume Type` を使うことにする。インスタンスは、指示通りに作成する。注意すべきところは、<font color="Red">セキュリティグループにHTTP接続を追加すること</font>・<font color="Red">Elastic IPアドレスを設定し、インスタンスを再起動するたびにIPアドレスが変わらないようにすること</font>である。</b>
@@ -29,9 +29,9 @@
 >`Command 'pip' not found, but can be installed with:`
 >`sudo apt install python-pip`
 
-このように、 `pip` も入っていないことがわかる。これでは必要なモジュールを入れることができないので、最低限Webアプリケーション構築に必要な情報だけでも入れておく。</b>
+このように、`pip` も入っていないことがわかる。これでは必要なモジュールを入れることができないので、最低限Webアプリケーション構築に必要な情報だけでも入れておく。</b>
 
-<b>　今回は `OS` が `Ubuntu` なので、`APT` を使用して `Python` から入れる。ただ、まずは `APT` をアップデートしておく。
+<b>　今回は OS が Ubuntu なので、`APT` を使用して Python から入れる。ただ、まずは APT をアップデートしておく。
 
 `$ sudo apt-get update`
 
@@ -90,11 +90,11 @@
 Oct 19 16:14:25 ip-172-31-38-160 systemd[1]: nginx.service: Failed to parse PID from file /run/nginx.pid: Invalid argument
 Oct 19 16:14:25 ip-172-31-38-160 systemd[1]: Started A high performance web server and a reverse proxy server.```
 
-<b>　`Active:` が <font color='Green'>active (running)</font> になっていれば大丈夫。`q`を打ち、ステータス画面を閉じる。それでは、`Nginx` のデフォルトの設定を少し変更する。以下のコマンドを打ち込み、ファイルの編集を行う。</b>
+<b>　「Active:」 が <font color='Green'>active (running)</font> になっていれば大丈夫。`q` を打ち、ステータス画面を閉じる。それでは、Nginx のデフォルトの設定を少し変更する。以下のコマンドを打ち込み、ファイルの編集を行う。</b>
 
 `$ sudo vi /etc/nginx/nginx.conf`
 
-<b>　なお、`vim` を使用する際は、`:set number` とコマンドを打つと行数が表示されるので、使うと見やすい。ここで、`62`行目の `include /etc/nginx/sites-enabled/*;` をコメントアウトする。</b>
+<b>　なお、`vim` を使用する際は、「:set number」 とコマンドを打つと行数が表示されるので、使うと見やすい。ここで、62行目の `include /etc/nginx/sites-enabled/*;` をコメントアウトする。</b>
 
 <b>　続いて、設定ファイルを作成する。</b>
 
@@ -111,7 +111,7 @@ server {
 }
 ```
 
-<b>　最後に、Nginx関連で覚えておいた方が良いコマンドをのせる。これは、設定を変更したのにもかかわらず `nginx` に反映されない、ということを防ぐ。何か設定を変えたのにも関わらず反映されない時は、このコマンドを使って見ると解決されるかもしれない。</b>
+<b>　最後に、Nginx関連で覚えておいた方が良いコマンドをのせる。これは、設定を変更したのにもかかわらず nginx に反映されない、ということを防ぐ。何か設定を変えたのにも関わらず反映されない時は、このコマンドを使って見ると解決されるかもしれない。</b>
 
 `$ sudo nginx -s reload`
 
@@ -122,14 +122,15 @@ server {
 `$ sudo pip install flask`
 
 ### uwsgi のインストール
+```
+$ sudo apt install clang
+$ CC=`which clang` pip install uwsgi # ファイルパスを指定している。
+$ sudo apt install uwsgi-plugin-python
+$ sudo apt-get install uwsgi-plugin-python3
+$ sudo apt-get install libpcre3 libpcre3-dev
+```
 
-`$ sudo apt install clang`<br>
-```$ CC=`which clang` pip install uwsgi # ファイルパスを指定している。```<br>
-`$ sudo apt install uwsgi-plugin-python`<br>
-`$ sudo apt-get install uwsgi-plugin-python3`<br>
-`$ sudo apt-get install libpcre3 libpcre3-dev`
-
-## nginxとuwsgiをつなぐ
+## nginx と uwsgiをつなぐ
 
 `$ sudo vi /etc/nginx/conf.d/uwsgi.conf`
 
@@ -189,33 +190,34 @@ After=network.target
 User=root
 Group=root
 WorkingDirectory=/usr/local/app
-# この下２つは、確認すること！(この設定は、以下
-でpython3をデフォルトで使うように書き換えた場合)
-
+# この下２つは、確認すること！
 # /home/ubuntu/.pyenv/shims/uwsgi --ini uwsgi.ini
-Environment="LD_LIBRARY_PATH=/home/ubuntu/.pyenv/versions/anaconda3-5.0.1/lib"
-ExecStart=/home/ubuntu/.pyenv/versions/anaconda3-5.0.1/bin/uwsgi --ini uwsgi.ini
+#Environment="LD_LIBRARY_PATH=/home/ubuntu/.pyenv/versions/anaconda3-5.0.1/lib"
+#ExecStart=/home/ubuntu/.pyenv/versions/anaconda3-5.0.1/bin/uwsgi --ini uwsgi.ini
+Environment="LD_LIBRARY_PATH=/usr/local/lib"
+ExecStart=/usr/local/bin/uwsgi  --ini uwsgi.ini
+
 
 [Install]
 WantedBy=multi-user.target
 ```
 
 <b>　正しいファイルパーミッションが含まれることを確認する。</b>
-
-`$ sudo touch /etc/systemd/system/uwsgi.service`<br>
-`$ sudo chmod 664 /etc/systemd/system/uwsgi.service`
-
+```
+$ sudo touch /etc/systemd/system/uwsgi.service
+$ sudo chmod 664 /etc/systemd/system/uwsgi.service
+```
 <b>　毎回起動させるのは面倒なので、自動起動を登録する。</b>
 
 `$ sudo systemctl enable uwsgi`
 >`Created symlink /etc/systemd/system/multi-user.target.wants/uwsgi.service → /etc/systemd/system/uwsgi.service.`
 
 <b>　手動で行うとき</b>
-
-`$ sudo systemctl stop uwsgi.service`<br>
-`$ sudo systemctl start uwsgi.service`<br>
-`$ sudo systemctl status uwsgi.service`
-
+```
+$ sudo systemctl stop uwsgi.service
+$ sudo systemctl start uwsgi.service
+$ sudo systemctl status uwsgi.service
+```
 ## アプリケーションの作成
 
 <b>　それでは、アプリケーションを作成し始めるとともに、`uwsgi` の設定を整える。</b>
@@ -236,16 +238,16 @@ www-data   814  0.0  0.4 143468  4776 ?        S    Oct20   0:00  \_ nginx: work
 >```uid=0(root) gid=0(root) groups=0(root)```
 
 <b>これらを`/etc/systemd/system/uwsgi.service`の該当箇所に書き込む</b>
-
-`$ sudo chown root:root /usr/local/app`<br>
-`$ sudo mkdir /usr/local/app/tmp`<br>
-`$ sudo mkdir /var/log/uwsgi`<br>
-`$ sudo chown root:root /var/log/uwsgi`
-
+```
+$ sudo chown root:root /usr/local/app
+$ sudo mkdir /usr/local/app/tmp
+$ sudo mkdir /var/log/uwsgi
+$ sudo chown root:root /var/log/uwsgi
+```
 
 <b>　ローカルのデータをリモートサーバーに送る。（-rをつければディレクトリごと）<font color="Red">※ローカルで行うことに注意！</font><br>
 `$ scp -r -i .ssh/Halloween_mosaic.pem ./Desktop/Halloween_app ubuntu@ec2-52-194-12-226.ap-northeast-1.compute.amazonaws.com:~/`<br>
-すると、`/home/ubuntu/`にデータが移動されるので、これを目的の位置に移動する。<br>
+すると、/home/ubuntu/ にデータが移動されるので、これを目的の位置に移動する。<br>
 ```
 $ sudo mv Halloween_app/* /usr/local/app/
 $ sudo rm -rf Halloween_app
@@ -254,8 +256,9 @@ $ sudo rm -rf Halloween_app
 
 ### アプリケーションを起動する
 <b>・必要なモジュールのインストール<br>
-ex)
+
 ```
+ex)
 $ sudo pip install flask-bootstrap
 # cachを無効にすることでMemoryErrorを防ぐ↓
 $ sudo pip install --no-cache-dir tensorflow
@@ -285,7 +288,6 @@ $ python
 
 <b>　上で調べた場所に行き、`site-packages` の下に次のファイルを作成する。<br></b>
 `$ sudo vi sitecustomize.py`
-
 ```
 import sys
 sys.setdefaultencoding('utf-8')
@@ -314,7 +316,7 @@ sudo chown -R root:root /usr/local/app/
 sudo chmod 777 /usr/local/app/
 というエラーが出ることがある。
 
-### `python` のデフォルト `version` 変更
+### python のデフォルト version 変更
 ```
 $ sudo apt-get install python3.6 python3.6-dev
 $ sudo wget https://bootstrap.pypa.io/get-pip.py
@@ -343,7 +345,7 @@ $ python --version
 →だったら大元から変更する。</b>
 
 `$ sudo vi ~/.bash_profile`
->`alias python=python3` を書き込む
+>alias python=python3 を書き込む
 
 `$ source ~/.bash_profile`
 
@@ -352,7 +354,7 @@ $ python --version
 
 <b>　いけた。ように見えたが、これはダメで、結局アプリケーションを実行する際には`Python 2.7.15rc1`が動いていた。</b>
 
-### `Pyenv` を利用する
+### Pyenv を利用する
 ```
 $ git clone https://github.com/yyuu/pyenv.git ~/.pyenv
 $ echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bash_profile
@@ -383,6 +385,10 @@ $ python --version
 ```
 <b>　これで、python3がデフォルトで利用できるようになった。</b>
 ```
-# uwsgiも忘れずに入れておく。
+# uwsgiやFlask、その他の基本パッケージも忘れずに入れておく。
+$ conda update cond
+$ conda install -c asmeurer/label/test some-package
 $ conda install -c conda-forge uwsgi
+$ conda install -c anaconda flask
+$ conda install -f python
 ```
