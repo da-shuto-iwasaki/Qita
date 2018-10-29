@@ -264,4 +264,4 @@ die-on-term = true
 ```
 ***
 ***
-[ここ]()に、実際にAWSでアプリケーションを作成したときのメモをまとめてある。
+[ここ](https://github.com/iwasakishuto/Qita/blob/master/AWS%20memo.md)に、実際にAWSでアプリケーションを作成したときのメモをまとめてある。
