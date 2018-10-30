@@ -5,6 +5,7 @@
 ***
 
 <b>　とりあえず[ここ](https://github.com/iwasakishuto/Qita/blob/master/Web%20App%20memo.md)で必要なものはわかったので、実際にAWSで環境構築をしながら、その流れをメモしていく。</b>
+ちなみに、できたアプリケーションは、[Trick and Treat you](http://www.halloweenmosaicapp.com) からアクセスできる。Ajaxを利用しており、画面遷移することなく楽しめる。
 
 ## インスタンスの作成
 <b>　今回は、`Ubuntu Server 18.04 LTS (HVM), SSD Volume Type` を使うことにする。<br><img src="./image/AWSmemo/instance.png" width=80%><br>インスタンスは、指示通りに作成する。注意すべきところは、<font color="Red">セキュリティグループにHTTP接続を追加すること</font><br><img src="./image/AWSmemo/security_group.png" width=80%><br><font color="Red">Elastic IPアドレスを設定し、インスタンスを再起動するたびにIPアドレスが変わらないようにすること</font>である。</b>
@@ -155,11 +156,12 @@ server {
 
 <b>　作成したディレクトリの所有者やグループを変える。そのために、`chown [オプション] ユーザー[:グループ] ファイル` というコマンドを打つ。グループ名を知りたい場合は、`$ sudo id ユーザー名` と打てば良い。なお、デフォルトの設定ではユーザー名、グループ名ともに `ubuntu` になっている。<br>
 　<font color="Red">と思ったらそういうわけでもなかったので注意！</font>まずは、以下のコマンドで確認する。</b>
-
-`$ ps faux | grep nginx`
->`ubuntu   10458  0.0  0.1  14856  1120 pts/0    S+   01:28   0:00              \_ grep --color=auto nginx
+```
+$ ps faux | grep nginx
+>ubuntu   10458  0.0  0.1  14856  1120 pts/0    S+   01:28   0:00              \_ grep --color=auto nginx
 root       813  0.0  0.1 140620  1460 ?        Ss   Oct20   0:00 nginx: master process /usr/sbin/nginx -g daemon on; master_process on;
-www-data   814  0.0  0.4 143468  4776 ?        S    Oct20   0:00  \_ nginx: worker process`
+www-data   814  0.0  0.4 143468  4776 ?        S    Oct20   0:00  \_ nginx: worker process
+```
 
 <b>　この時の `master_process` と書かれているものを 記憶する。今回は`root`</b>
 
@@ -172,19 +174,20 @@ www-data   814  0.0  0.4 143468  4776 ?        S    Oct20   0:00  \_ nginx: work
 
 ```
 [uwsgi]
+#plugin
+plugins-dir = /usr/lib/uwsgi/plugins
+plugin = python27
+chdir = /usr/local/app
+
 #application's base folder
 base = /usr/local/app
 
 #python module to import
-app = main #main.pyだから
+app = Halloween
 module = %(app)
 
 #socket file's location
 socket = /usr/local/app/tmp/uwsgi.sock
-
-#plugin
-plugin = python
-plugins-dir = /usr/lib/uwsgi
 
 #permissions for the socket file
 chmod-socket = 666
@@ -199,6 +202,7 @@ master = true
 processes = 5
 vacuum = true
 die-on-term = true
+~                    
 ```
 
 ## uwsgi の設定
@@ -242,6 +246,7 @@ $ sudo systemctl stop uwsgi.service
 $ sudo systemctl start uwsgi.service
 $ sudo systemctl status uwsgi.service
 ```
+<b>　このタイミングで接続がうまくいっていないのは当たり前なので、もうしばらく設定を行う。</b>
 
 ### アプリケーションを起動する
 
@@ -260,6 +265,9 @@ $ sudo chown root:root /var/log/uwsgi
 $ sudo mv Halloween_app/* /usr/local/app/
 $ sudo rm -rf Halloween_app
 ```
+
+<b> この状態で起動させると、uwsgiも正常に動作するが、どうやらプラグインがうまくいっていないようだ。IPアドレスでアクセスしても以下のページになってしまう。
+<img src="./image/AWSmemo/nginx.png">
 </b>
 
 <b>・必要なモジュールのインストール<br>
