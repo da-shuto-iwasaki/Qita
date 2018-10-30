@@ -7,7 +7,7 @@
 <b>　とりあえず[ここ](https://github.com/iwasakishuto/Qita/blob/master/Web%20App%20memo.md)で必要なものはわかったので、実際にAWSで環境構築をしながら、その流れをメモしていく。</b>
 
 ## インスタンスの作成
-<b>　今回は、`Ubuntu Server 18.04 LTS (HVM), SSD Volume Type` を使うことにする。インスタンスは、指示通りに作成する。注意すべきところは、<font color="Red">セキュリティグループにHTTP接続を追加すること</font>・<font color="Red">Elastic IPアドレスを設定し、インスタンスを再起動するたびにIPアドレスが変わらないようにすること</font>である。</b>
+<b>　今回は、`Ubuntu Server 18.04 LTS (HVM), SSD Volume Type` を使うことにする。<br><img src="./image/AWSmemo/instance.png" width=80%><br>インスタンスは、指示通りに作成する。注意すべきところは、<font color="Red">セキュリティグループにHTTP接続を追加すること</font><br><img src="./image/AWSmemo/security_group.png" width=80%><br><font color="Red">Elastic IPアドレスを設定し、インスタンスを再起動するたびにIPアドレスが変わらないようにすること</font>である。</b>
 
 <b> 接続する際には、キーが公開されていないことが必要となる。<br>
 `$ chmod 400 Halloween_mosaic.pem`<br>
@@ -71,10 +71,10 @@
 `$ sudo apt-get install nginx`
 
 <b>　正しく入っているか確かめるために、実際に動かしてみる。</b>
-
-`$ sudo systemctl start nginx.service`<br>
-`$ sudo systemctl status nginx.service`
->```● nginx.service - A high performance web server and a reverse proxy server
+```
+$ sudo systemctl start nginx.service
+$ sudo systemctl status nginx.service
+>● nginx.service - A high performance web server and a reverse proxy server
    Loaded: loaded (/lib/systemd/system/nginx.service; enabled; vendor preset: enabled)
    Active: active (running) since Fri 2018-10-19 16:14:25 UTC; 18min ago
      Docs: man:nginx(8)
@@ -84,11 +84,11 @@
     Tasks: 2 (limit: 1152)
    CGroup: /system.slice/nginx.service
            ├─18875 nginx: master process /usr/sbin/nginx -g daemon on; master_process on;
-           └─18877 nginx: worker process```
-
->```Oct 19 16:14:25 ip-172-31-38-160 systemd[1]: Starting A high performance web server and a reverse proxy server...
+           └─18877 nginx: worker process
+Oct 19 16:14:25 ip-172-31-38-160 systemd[1]: Starting A high performance web server and a reverse proxy server...
 Oct 19 16:14:25 ip-172-31-38-160 systemd[1]: nginx.service: Failed to parse PID from file /run/nginx.pid: Invalid argument
-Oct 19 16:14:25 ip-172-31-38-160 systemd[1]: Started A high performance web server and a reverse proxy server.```
+Oct 19 16:14:25 ip-172-31-38-160 systemd[1]: Started A high performance web server and a reverse proxy server.
+```
 
 <b>　「Active:」 が <font color='Green'>active (running)</font> になっていれば大丈夫。`q` を打ち、ステータス画面を閉じる。それでは、Nginx のデフォルトの設定を少し変更する。以下のコマンドを打ち込み、ファイルの編集を行う。</b>
 
@@ -147,7 +147,26 @@ server {
 }
 ```
 
-## uwsgi の設定
+## アプリケーションの作成
+
+<b>　それでは、アプリケーションを作成し始めるとともに、`uwsgi` の設定を整える。</b>
+
+`$ sudo mkdir /usr/local/app`
+
+<b>　作成したディレクトリの所有者やグループを変える。そのために、`chown [オプション] ユーザー[:グループ] ファイル` というコマンドを打つ。グループ名を知りたい場合は、`$ sudo id ユーザー名` と打てば良い。なお、デフォルトの設定ではユーザー名、グループ名ともに `ubuntu` になっている。<br>
+　<font color="Red">と思ったらそういうわけでもなかったので注意！</font>まずは、以下のコマンドで確認する。</b>
+
+`$ ps faux | grep nginx`
+>`ubuntu   10458  0.0  0.1  14856  1120 pts/0    S+   01:28   0:00              \_ grep --color=auto nginx
+root       813  0.0  0.1 140620  1460 ?        Ss   Oct20   0:00 nginx: master process /usr/sbin/nginx -g daemon on; master_process on;
+www-data   814  0.0  0.4 143468  4776 ?        S    Oct20   0:00  \_ nginx: worker process`
+
+<b>　この時の `master_process` と書かれているものを 記憶する。今回は`root`</b>
+
+`$ sudo id root`
+>```uid=0(root) gid=0(root) groups=0(root)```
+
+<b>これらを以下の`/etc/systemd/system/uwsgi.service`の該当箇所に書き込む</b>
 
 `$ sudo vi /usr/local/app/uwsgi.ini`
 
@@ -163,6 +182,9 @@ module = %(app)
 #socket file's location
 socket = /usr/local/app/tmp/uwsgi.sock
 
+#plugin
+plugin = python
+plugins-dir = /usr/lib/uwsgi
 
 #permissions for the socket file
 chmod-socket = 666
@@ -179,6 +201,8 @@ vacuum = true
 die-on-term = true
 ```
 
+## uwsgi の設定
+
 `$ sudo vi /etc/systemd/system/uwsgi.service`
 
 ```
@@ -194,8 +218,8 @@ WorkingDirectory=/usr/local/app
 # /home/ubuntu/.pyenv/shims/uwsgi --ini uwsgi.ini
 #Environment="LD_LIBRARY_PATH=/home/ubuntu/.pyenv/versions/anaconda3-5.0.1/lib"
 #ExecStart=/home/ubuntu/.pyenv/versions/anaconda3-5.0.1/bin/uwsgi --ini uwsgi.ini
-Environment="LD_LIBRARY_PATH=/usr/local/lib"
-ExecStart=/usr/local/bin/uwsgi  --ini uwsgi.ini
+Environment="LD_LIBRARY_PATH=/usr/lib"
+ExecStart=/usr/bin/uwsgi  --ini uwsgi.ini
 
 
 [Install]
@@ -218,29 +242,13 @@ $ sudo systemctl stop uwsgi.service
 $ sudo systemctl start uwsgi.service
 $ sudo systemctl status uwsgi.service
 ```
-## アプリケーションの作成
 
-<b>　それでは、アプリケーションを作成し始めるとともに、`uwsgi` の設定を整える。</b>
+### アプリケーションを起動する
 
-`$ sudo mkdir /usr/local/app`
-
-<b>　作成したディレクトリの所有者やグループを変える。そのために、`chown [オプション] ユーザー[:グループ] ファイル` というコマンドを打つ。グループ名を知りたい場合は、`$ sudo id ユーザー名` と打てば良い。なお、デフォルトの設定ではユーザー名、グループ名ともに `ubuntu` になっている。<br>
-　<font color="Red">と思ったらそういうわけでもなかったので注意！</font>まずは、以下のコマンドで確認する。</b>
-
-`$ ps faux | grep nginx`
->`ubuntu   10458  0.0  0.1  14856  1120 pts/0    S+   01:28   0:00              \_ grep --color=auto nginx
-root       813  0.0  0.1 140620  1460 ?        Ss   Oct20   0:00 nginx: master process /usr/sbin/nginx -g daemon on; master_process on;
-www-data   814  0.0  0.4 143468  4776 ?        S    Oct20   0:00  \_ nginx: worker process`
-
-<b>　この時の `master_process` と書かれているものを 記憶する。今回は`root`</b>
-
-`$ sudo id root`
->```uid=0(root) gid=0(root) groups=0(root)```
-
-<b>これらを`/etc/systemd/system/uwsgi.service`の該当箇所に書き込む</b>
 ```
+$ sudo mkdir -p /usr/local/app/tmp
+$ sudo chmod 777 /usr/local/app
 $ sudo chown root:root /usr/local/app
-$ sudo mkdir /usr/local/app/tmp
 $ sudo mkdir /var/log/uwsgi
 $ sudo chown root:root /var/log/uwsgi
 ```
@@ -254,7 +262,6 @@ $ sudo rm -rf Halloween_app
 ```
 </b>
 
-### アプリケーションを起動する
 <b>・必要なモジュールのインストール<br>
 
 ```
@@ -387,8 +394,19 @@ $ python --version
 ```
 # uwsgiやFlask、その他の基本パッケージも忘れずに入れておく。
 $ conda update cond
-$ conda install -c asmeurer/label/test some-package
+$ conda update anaconda
 $ conda install -c conda-forge uwsgi
 $ conda install -c anaconda flask
 $ conda install -f python
 ```
+
+## ドメインを取得する
+<b>　Webアプリケーションが作成できたら、ドメインを取得して公開したいと考えるだろう。そこで、AWSでのドメインの取得方法を非常に簡単に記す。(お名前.comの場合は[ここ](https://github.com/iwasakishuto/Qita/blob/master/Get%20Domain.md))</b>
+<b>　ここを選択し、取得したいドメイン名を検索する。</b><br>
+<img src="./image/AWSmemo/AWS_domain1.png">
+<b>　早い者勝ちなので、取得している人がいないドメインを見つけ、選択して購入をする。</b><br>
+<img src="./image/AWSmemo/AWS_domain2.png">
+<b>　購入したドメインがあることを確認したら、選択し、「Go to Record Sets」を選択。</b><br>
+<img src="./image/AWSmemo/AWS_domain3.png">
+<b>　画面右側のNameに「www」、valueにElasticIPアドレスを入力する。少し待てば結果が反映される。</b><br>
+<img src="./image/AWSmemo/AWS_domain4.png">
