@@ -1,2 +1,2 @@
 # Qita
-Summarize tips and upload for Qita
+Summarize tips and prepare for uploading to Qita
